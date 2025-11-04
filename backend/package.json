@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step needed for backend'",
+    "deploy": "npm start"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "gh-pages": "^6.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.2",
+    "multer": "^2.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sridhar-1312/e-commerce.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/Sridhar-1312/e-commerce/issues"
+  },
+  "homepage": "https://github.com/Sridhar-1312/e-commerce#readme"
+}
