@@ -47,7 +47,7 @@ app.post("/upload", Upload.single('product'),(req,res)=>{
 
 app.listen(port, (error)=>{
     if(!error){
-        console.log("Server is Running on those ssfvv.afsv nlfvnlPort" +  port);
+        console.log("Server is Running on Port" +  port);
         
     }else{
         console.log("Error" + error);
