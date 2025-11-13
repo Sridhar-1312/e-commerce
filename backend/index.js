@@ -10,8 +10,10 @@ const app = express();
 const port = 4000;
 
 // Middleware
-app.use(express.json());
 app.use(cors());
+
+// ⚠️ Don't use express.json() before multer for upload routes
+app.use(express.json()); // fine globally as long as you don't reuse it in upload routes
 
 // ✅ Connect to MongoDB
 mongoose.connect("mongodb+srv://Sridharc:007007007@cluster0.nrw42eq.mongodb.net/e-commerce")
@@ -46,19 +48,21 @@ app.get("/", (req, res) => {
   res.send("🚀 Express App is Running Successfully!");
 });
 
-// ✅ Upload route (expects 'product' field name)
-app.post("/upload", upload.single("product"), (req, res) => {
-  try {
+// ✅ Upload route (expects field name "product")
+app.post("/upload", (req, res, next) => {
+  upload.single("product")(req, res, (err) => {
+    if (err) {
+      console.error("❌ Multer Error:", err);
+      return res.status(400).json({ success: 0, message: "File upload error", error: err.message });
+    }
+
     if (!req.file) {
       return res.status(400).json({ success: 0, message: "No file uploaded" });
     }
 
     const imageUrl = `http://localhost:${port}/images/${req.file.filename}`;
     res.json({ success: 1, image_url: imageUrl });
-  } catch (err) {
-    console.error("Upload Error:", err);
-    res.status(500).json({ success: 0, message: "Upload failed" });
-  }
+  });
 });
 
 // ✅ Start server
