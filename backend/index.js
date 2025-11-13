@@ -5,6 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const fs = require("fs");
+const { type } = require("os");
 
 const app = express();
 const port = 4000;
@@ -64,6 +65,67 @@ app.post("/upload", (req, res, next) => {
     res.json({ success: 1, image_url: imageUrl });
   });
 });
+
+// schema bfor creating product
+
+const Product = mongoose.model("Product",{
+  id:{
+    type:Number,
+    required:true,
+  },
+  name:{
+    type:String,
+    required:true,
+  },
+  image:{
+    type:String,
+    required:true,
+  },
+  category:{
+    type:String,
+    required:true,
+  },
+  new_price:{
+    type:Number,
+    required:true,
+  },
+  date:{
+    type:Date,
+    default:Date.now,
+  },
+  available:{
+    type:Boolean,
+    default:true,
+  },
+})
+
+app.post("/addproduct",async(req,res)=>{
+  const product = new Product({
+    id:req.body.id,
+    name:req.body.name,
+    image:req.body.image,
+    category:req.body.category,
+    new_price:req.body.new_price,
+    old_price:req.body.old_price,
+    date:req.body.date,
+    available:req.body.available,
+  });
+  console.log(product);
+  await product.save();
+  console.log("Saved");
+  res.json({
+    success: true,
+    name:req.body.name,
+  })
+  
+  
+  
+})
+
+
+
+
+
 
 // ✅ Start server
 app.listen(port, () => {
