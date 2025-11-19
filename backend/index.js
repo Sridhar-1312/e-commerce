@@ -89,6 +89,10 @@ const Product = mongoose.model("Product",{
     type:Number,
     required:true,
   },
+  old_price:{
+    type:Number,
+    required:false,
+  },
   date:{
     type:Date,
     default:Date.now,
@@ -131,13 +135,30 @@ app.post("/addproduct",async(req,res)=>{
   
   
 })
+//Creaing API for deleting product
 
+app.post('/removeproduct', async (req, res) => {
+  try {
+    const deleted = await Product.findOneAndDelete({ id: req.body.id });
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+    console.log("Removed", deleted.id);
+    res.json({
+      success: true,
+      id: deleted.id,
+    });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
+//creating API for getting all products
 
-
-
+app.get('/allproduct', async)
 
 // ✅ Start server
-app.listen(port, () => {
+app.listen(port, (error) => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });
