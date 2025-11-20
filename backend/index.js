@@ -4,8 +4,6 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-const fs = require("fs");
-const { type } = require("os");
 
 const app = express();
 const port = 4000;
@@ -13,152 +11,86 @@ const port = 4000;
 // Middleware
 app.use(cors());
 
-// ⚠️ Don't use express.json() before multer for upload routes
-app.use(express.json()); // fine globally as long as you don't reuse it in upload routes
+// Parse JSON + urlencoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ Connect to MongoDB
-mongoose.connect("mongodb+srv://Sridharc:007007007@cluster0.nrw42eq.mongodb.net/e-commerce")
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Connection Error:", err));
+// Serve uploaded images
+app.use("/uploads", express.static("uploads"));
 
-// ✅ Create upload folder if not exists
-const uploadDir = path.join(__dirname, "Upload", "images");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📂 Created upload directory:", uploadDir);
-}
+// MongoDB connection
+mongoose.connect(
+  "mongodb+srv://Sridharc:007007007@cluster0.nrw42eq.mongodb.net/ecommerce",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
 
-// ✅ Multer storage engine setup
+const Product = mongoose.model("Product", {
+  name: String,
+  image: String,
+  category: String,
+  new_price: Number,
+  old_price: Number,
+});
+
+// Multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
   },
-  filename: (req, file, cb) => {
-    const uniqueName = `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
-// ✅ Static folder for serving uploaded images
-app.use("/images", express.static(uploadDir));
-
-// ✅ Test route
+// Test route
 app.get("/", (req, res) => {
-  res.send("🚀 Express App is Running Successfully!");
+  res.send("Backend is running!");
 });
 
-// ✅ Upload route (expects field name "product")
-app.post("/upload", (req, res, next) => {
-  upload.single("product")(req, res, (err) => {
-    if (err) {
-      console.error("❌ Multer Error:", err);
-      return res.status(400).json({ success: 0, message: "File upload error", error: err.message });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ success: 0, message: "No file uploaded" });
-    }
-
-    const imageUrl = `http://localhost:${port}/images/${req.file.filename}`;
-    res.json({ success: 1, image_url: imageUrl });
-  });
-});
-
-// schema bfor creating product
-
-const Product = mongoose.model("Product",{
-  id:{
-    type:Number,
-    required:true,
-  },
-  name:{
-    type:String,
-    required:true,
-  },
-  image:{
-    type:String,
-    required:true,
-  },
-  category:{
-    type:String,
-    required:true,
-  },
-  new_price:{
-    type:Number,
-    required:true,
-  },
-  old_price:{
-    type:Number,
-    required:false,
-  },
-  date:{
-    type:Date,
-    default:Date.now,
-  },
-  available:{
-    type:Boolean,
-    default:true,
-  },
-})
-
-app.post("/addproduct",async(req,res)=>{
-  let products = await Product.find({});
-  let id;
-  if(products.length>0){
-    let last_product_array = products.slice(-1);
-    let last_product = last_product_array[0];
-    id = last_product.id + 1;
-  }
-  else{
-    id = 1;
-  }
-  const product = new Product({
-    id:id,
-    name:req.body.name,
-    image:req.body.image,
-    category:req.body.category,
-    new_price:req.body.new_price,
-    old_price:req.body.old_price,
-    date:req.body.date,
-    available:req.body.available,
-  });
-  console.log(product);
-  await product.save();
-  console.log("Saved");
-  res.json({
-    success: true,
-    name:req.body.name,
-  })
-  
-  
-  
-})
-//Creaing API for deleting product
-
-app.post('/removeproduct', async (req, res) => {
+// Add product
+app.post("/addproduct", async (req, res) => {
   try {
-    const deleted = await Product.findOneAndDelete({ id: req.body.id });
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: "Product not found" });
-    }
-    console.log("Removed", deleted.id);
-    res.json({
-      success: true,
-      id: deleted.id,
+    console.log("REQ BODY:", req.body);
+
+    const newProduct = new Product({
+      name: req.body.name,
+      image: req.body.image,
+      category: req.body.category,
+      new_price: req.body.new_price,
+      old_price: req.body.old_price,
     });
+
+    await newProduct.save();
+    res.status(200).json({ message: "Product added successfully" });
   } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-//creating API for getting all products
+// Get all products
+app.get("/allproducts", async (req, res) => {
+  try {
+    const data = await Product.find();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching products" });
+  }
+});
 
-app.get('/allproduct', async)
+// Upload product image
+app.post("/upload", upload.single("product"), (req, res) => {
+  res.json({
+    success: 1,
+    image_url: "http://localhost:4000/uploads/" + req.file.filename,
+  });
+});
 
-// ✅ Start server
-app.listen(port, (error) => {
-  console.log(`✅ Server running at http://localhost:${port}`);
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
