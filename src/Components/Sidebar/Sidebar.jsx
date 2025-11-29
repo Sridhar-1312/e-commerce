@@ -1,9 +1,14 @@
 import React from 'react'
 import './Sidebar.css'
+import { Link } from 'react-router-dom'
 
 const Sidebar = () => {
   return (
-    <div>Sidebar</div>
+    <div className="sidebar">
+      <Link to="/addproduct" style={{ textDecoration: 'none' }}>
+        Add Product
+      </Link>
+    </div>
   )
 }
 
