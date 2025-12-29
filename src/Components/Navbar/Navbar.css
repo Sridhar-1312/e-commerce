@@ -12,17 +12,17 @@
   width: 100px;
 }
 .nav-profile {
-  width: 34px;
+  width: 36px;
 }
 @media (max-width: 800px){
   .navbar {
-    padding: 18px 28px;
+    padding: 20px 30px;
   }
   .nav-logo {
-    width: 150px;
-    height: 54px;
+    width: 152px;
+    height: 56px;
   }
   .nav-profile {
-    width: 64px;
+    width: 62px;
   }
 }
